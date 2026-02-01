@@ -69,35 +69,16 @@
       font-weight: 800;
       display:none;
     }
-    .hearts{
-      position:absolute; inset:0;
-      pointer-events:none;
-      overflow:hidden;
-      border-radius: 24px;
-    }
-    .heart{
-      position:absolute;
-      font-size: 18px;
-      opacity:.9;
-      animation: floatUp linear forwards;
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,.18));
-    }
-    @keyframes floatUp{
-      from { transform: translateY(30px) scale(.9); opacity: 0; }
-      10% { opacity: .95; }
-      to { transform: translateY(-220px) scale(1.15); opacity: 0; }
-    }
   </style>
 </head>
 <body>
-  <div class="card" id="card">
-    <div class="hearts" id="hearts"></div>
+  <div class="card">
     <h1>💌 Kenza…</h1>
     <p>Accepterais-tu d’être ma Valentine ?</p>
 
     <div class="stage" id="stage">
       <button id="yes">Oui 💘</button>
-      <button id="no" aria-label="Non">Non 🙈</button>
+      <button id="no">Non 🙈</button>
     </div>
 
     <div class="msg" id="msg">i love youuu kenza</div>
@@ -108,123 +89,49 @@
     const noBtn = document.getElementById("no");
     const yesBtn = document.getElementById("yes");
     const msg = document.getElementById("msg");
-    const hearts = document.getElementById("hearts");
-
-    let noW, noH, stageRect;
 
     function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
-    function refreshSizes(){
-      stageRect = stage.getBoundingClientRect();
-      const r = noBtn.getBoundingClientRect();
-      noW = r.width; noH = r.height;
-    }
-    window.addEventListener("resize", refreshSizes);
-    window.addEventListener("load", refreshSizes);
+    function moveNoButton(){
+      const r = stage.getBoundingClientRect();
+      const br = noBtn.getBoundingClientRect();
+      const padding = 8;
 
-    function moveNoButtonAwayFrom(x, y){
-      refreshSizes();
+      const maxX = r.width - br.width - padding;
+      const maxY = r.height - br.height - padding;
 
-      const padding = 10;
-      const maxX = stageRect.width - noW - padding;
-      const maxY = stageRect.height - noH - padding;
+      const x = clamp(padding + Math.random()*maxX, padding, maxX);
+      const y = clamp(padding + Math.random()*maxY, padding, maxY);
 
-      // position actuelle du bouton (dans le repère du stage)
-      const btnRect = noBtn.getBoundingClientRect();
-      const btnX = btnRect.left - stageRect.left;
-      const btnY = btnRect.top  - stageRect.top;
-
-      // vecteur "fuite" : du pointeur vers le centre du bouton
-      const centerX = btnX + noW/2;
-      const centerY = btnY + noH/2;
-
-      const dx = centerX - x;
-      const dy = centerY - y;
-
-      // si on est loin, pas besoin de bouger
-      const dist = Math.hypot(dx, dy);
-      if (dist > 140) return;
-
-      // nouvelle position random + push dans la direction opposée
-      const randX = Math.random() * maxX;
-      const randY = Math.random() * maxY;
-
-      // "push" pour que ça parte du pointeur
-      const push = 90;
-      const nx = clamp(randX + (dx/dist || 0) * push, padding, maxX);
-      const ny = clamp(randY + (dy/dist || 0) * push, padding, maxY);
-
-      noBtn.style.left = nx + "px";
-      noBtn.style.top  = ny + "px";
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
       noBtn.style.transform = "translate(0,0)";
     }
 
-    // souris
-    stage.addEventListener("mousemove", (e) => {
+    // Fuit la souris / touch
+    ["mouseenter","pointerenter","pointerdown","touchstart"].forEach(evt=>{
+      noBtn.addEventListener(evt, moveNoButton, {passive:true});
+    });
+
+    // Si on s'approche
+    stage.addEventListener("mousemove", (e)=>{
       const r = stage.getBoundingClientRect();
       const x = e.clientX - r.left;
       const y = e.clientY - r.top;
-      moveNoButtonAwayFrom(x, y);
+      const b = noBtn.getBoundingClientRect();
+      const bx = (b.left - r.left) + b.width/2;
+      const by = (b.top - r.top) + b.height/2;
+      if (Math.hypot(bx - x, by - y) < 120) moveNoButton();
     });
-
-    // mobile (touch / drag)
-    stage.addEventListener("touchstart", (e) => {
-      const t = e.touches[0];
-      const r = stage.getBoundingClientRect();
-      moveNoButtonAwayFrom(t.clientX - r.left, t.clientY - r.top);
-    }, {passive:true});
-
-    stage.addEventListener("touchmove", (e) => {
-      const t = e.touches[0];
-      const r = stage.getBoundingClientRect();
-      moveNoButtonAwayFrom(t.clientX - r.left, t.clientY - r.top);
-    }, {passive:true});
-
-    // le bouton non bouge aussi si on essaie de le toucher
-    ["mouseenter","pointerenter","pointerdown","touchstart"].forEach(evt=>{
-      noBtn.addEventListener(evt, (e)=>{
-        const r = stage.getBoundingClientRect();
-        const cx = (e.clientX || (e.touches && e.touches[0].clientX) || (r.left + r.width/2)) - r.left;
-        const cy = (e.clientY || (e.touches && e.touches[0].clientY) || (r.top + r.height/2)) - r.top;
-        moveNoButtonAwayFrom(cx, cy);
-      }, {passive:true});
-    });
-
-    function popHeart(){
-      const span = document.createElement("span");
-      span.className = "heart";
-      span.textContent = ["💖","💘","💝","💕","❤️"][Math.floor(Math.random()*5)];
-      span.style.left = (Math.random()*100) + "%";
-      span.style.bottom = "-10px";
-      span.style.animationDuration = (900 + Math.random()*900) + "ms";
-      hearts.appendChild(span);
-      setTimeout(()=> span.remove(), 2000);
-    }
 
     yesBtn.addEventListener("click", ()=>{
       msg.style.display = "block";
       yesBtn.disabled = true;
       noBtn.disabled = true;
-
-      // petite pluie de cœurs
-      let i = 0;
-      const timer = setInterval(()=>{
-        popHeart();
-        i++;
-        if(i >= 24) clearInterval(timer);
-      }, 70);
     });
 
-    // placement initial un peu aléatoire
-    setTimeout(()=>{
-      refreshSizes();
-      const padding = 10;
-      const maxX = stageRect.width - noW - padding;
-      const maxY = stageRect.height - noH - padding;
-      noBtn.style.left = (padding + Math.random()*maxX) + "px";
-      noBtn.style.top  = (padding + Math.random()*maxY) + "px";
-      noBtn.style.transform = "translate(0,0)";
-    }, 50);
+    // placement initial
+    setTimeout(moveNoButton, 50);
   </script>
 </body>
 </html>
