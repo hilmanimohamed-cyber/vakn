@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Valentine 💘</title>
+  <style>
+    :root { --bg1:#ff6aa2; --bg2:#ffb3c7; }
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top, var(--bg2), var(--bg1));
+      overflow:hidden;
+    }
+    .card{
+      width:min(520px, 92vw);
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.28);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 28px 22px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.22);
+      text-align:center;
+      color:#fff;
+      position: relative;
+    }
+    h1{ margin: 0 0 6px; font-size: 28px; }
+    p{ margin: 0 0 18px; opacity:.95; }
+    .stage{
+      position: relative;
+      height: 140px;
+      margin-top: 14px;
+    }
+    button{
+      border:0;
+      padding: 14px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.18);
+      transition: transform .12s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active{ transform: scale(.98); }
+    #yes{
+      background: #16d38a;
+      color: #083b27;
+      margin-right: 12px;
+    }
+    #no{
+      background: rgba(255,255,255,.92);
+      color:#d1004b;
+      position: absolute;
+      left: 58%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      touch-action: none;
+    }
+    .msg{
+      margin-top: 14px;
+      font-size: 22px;
+      font-weight: 800;
+      display:none;
+    }
+    .hearts{
+      position:absolute; inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      border-radius: 24px;
+    }
+    .heart{
+      position:absolute;
+      font-size: 18px;
+      opacity:.9;
+      animation: floatUp linear forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.18));
+    }
+    @keyframes floatUp{
+      from { transform: translateY(30px) scale(.9); opacity: 0; }
+      10% { opacity: .95; }
+      to { transform: translateY(-220px) scale(1.15); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="hearts" id="hearts"></div>
+    <h1>💌 Kenza…</h1>
+    <p>Accepterais-tu d’être ma Valentine ?</p>
+
+    <div class="stage" id="stage">
+      <button id="yes">Oui 💘</button>
+      <button id="no" aria-label="Non">Non 🙈</button>
+    </div>
+
+    <div class="msg" id="msg">i love youuu kenza</div>
+  </div>
+
+  <script>
+    const stage = document.getElementById("stage");
+    const noBtn = document.getElementById("no");
+    const yesBtn = document.getElementById("yes");
+    const msg = document.getElementById("msg");
+    const hearts = document.getElementById("hearts");
+
+    let noW, noH, stageRect;
+
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    function refreshSizes(){
+      stageRect = stage.getBoundingClientRect();
+      const r = noBtn.getBoundingClientRect();
+      noW = r.width; noH = r.height;
+    }
+    window.addEventListener("resize", refreshSizes);
+    window.addEventListener("load", refreshSizes);
+
+    function moveNoButtonAwayFrom(x, y){
+      refreshSizes();
+
+      const padding = 10;
+      const maxX = stageRect.width - noW - padding;
+      const maxY = stageRect.height - noH - padding;
+
+      // position actuelle du bouton (dans le repère du stage)
+      const btnRect = noBtn.getBoundingClientRect();
+      const btnX = btnRect.left - stageRect.left;
+      const btnY = btnRect.top  - stageRect.top;
+
+      // vecteur "fuite" : du pointeur vers le centre du bouton
+      const centerX = btnX + noW/2;
+      const centerY = btnY + noH/2;
+
+      const dx = centerX - x;
+      const dy = centerY - y;
+
+      // si on est loin, pas besoin de bouger
+      const dist = Math.hypot(dx, dy);
+      if (dist > 140) return;
+
+      // nouvelle position random + push dans la direction opposée
+      const randX = Math.random() * maxX;
+      const randY = Math.random() * maxY;
+
+      // "push" pour que ça parte du pointeur
+      const push = 90;
+      const nx = clamp(randX + (dx/dist || 0) * push, padding, maxX);
+      const ny = clamp(randY + (dy/dist || 0) * push, padding, maxY);
+
+      noBtn.style.left = nx + "px";
+      noBtn.style.top  = ny + "px";
+      noBtn.style.transform = "translate(0,0)";
+    }
+
+    // souris
+    stage.addEventListener("mousemove", (e) => {
+      const r = stage.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      moveNoButtonAwayFrom(x, y);
+    });
+
+    // mobile (touch / drag)
+    stage.addEventListener("touchstart", (e) => {
+      const t = e.touches[0];
+      const r = stage.getBoundingClientRect();
+      moveNoButtonAwayFrom(t.clientX - r.left, t.clientY - r.top);
+    }, {passive:true});
+
+    stage.addEventListener("touchmove", (e) => {
+      const t = e.touches[0];
+      const r = stage.getBoundingClientRect();
+      moveNoButtonAwayFrom(t.clientX - r.left, t.clientY - r.top);
+    }, {passive:true});
+
+    // le bouton non bouge aussi si on essaie de le toucher
+    ["mouseenter","pointerenter","pointerdown","touchstart"].forEach(evt=>{
+      noBtn.addEventListener(evt, (e)=>{
+        const r = stage.getBoundingClientRect();
+        const cx = (e.clientX || (e.touches && e.touches[0].clientX) || (r.left + r.width/2)) - r.left;
+        const cy = (e.clientY || (e.touches && e.touches[0].clientY) || (r.top + r.height/2)) - r.top;
+        moveNoButtonAwayFrom(cx, cy);
+      }, {passive:true});
+    });
+
+    function popHeart(){
+      const span = document.createElement("span");
+      span.className = "heart";
+      span.textContent = ["💖","💘","💝","💕","❤️"][Math.floor(Math.random()*5)];
+      span.style.left = (Math.random()*100) + "%";
+      span.style.bottom = "-10px";
+      span.style.animationDuration = (900 + Math.random()*900) + "ms";
+      hearts.appendChild(span);
+      setTimeout(()=> span.remove(), 2000);
+    }
+
+    yesBtn.addEventListener("click", ()=>{
+      msg.style.display = "block";
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+
+      // petite pluie de cœurs
+      let i = 0;
+      const timer = setInterval(()=>{
+        popHeart();
+        i++;
+        if(i >= 24) clearInterval(timer);
+      }, 70);
+    });
+
+    // placement initial un peu aléatoire
+    setTimeout(()=>{
+      refreshSizes();
+      const padding = 10;
+      const maxX = stageRect.width - noW - padding;
+      const maxY = stageRect.height - noH - padding;
+      noBtn.style.left = (padding + Math.random()*maxX) + "px";
+      noBtn.style.top  = (padding + Math.random()*maxY) + "px";
+      noBtn.style.transform = "translate(0,0)";
+    }, 50);
+  </script>
+</body>
+</html>
