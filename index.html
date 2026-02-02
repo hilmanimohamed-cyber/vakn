@@ -5,133 +5,113 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Valentine 💘</title>
   <style>
-    :root { --bg1:#ff6aa2; --bg2:#ffb3c7; }
-    * { box-sizing: border-box; }
     body{
       margin:0;
       min-height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: radial-gradient(circle at top, var(--bg2), var(--bg1));
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+      background: radial-gradient(circle at top, #ffb3c7, #ff6aa2);
       overflow:hidden;
     }
     .card{
       width:min(520px, 92vw);
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.2);
       backdrop-filter: blur(10px);
       border-radius: 24px;
       padding: 28px 22px;
-      box-shadow: 0 18px 50px rgba(0,0,0,.22);
+      box-shadow: 0 18px 50px rgba(0,0,0,.25);
       text-align:center;
       color:#fff;
-      position: relative;
     }
-    h1{ margin: 0 0 6px; font-size: 28px; }
-    p{ margin: 0 0 18px; opacity:.95; }
+    h1{ margin-bottom:8px; }
     .stage{
       position: relative;
-      height: 140px;
-      margin-top: 14px;
+      height: 150px;
+      margin-top: 20px;
     }
     button{
       border:0;
-      padding: 14px 18px;
+      padding: 14px 20px;
       border-radius: 999px;
       font-weight: 700;
-      cursor: pointer;
       font-size: 16px;
+      cursor: pointer;
       box-shadow: 0 10px 25px rgba(0,0,0,.18);
-      transition: transform .12s ease;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
+      transition: all .2s ease;
     }
-    button:active{ transform: scale(.98); }
     #yes{
-      background: #16d38a;
-      color: #083b27;
-      margin-right: 12px;
+      background:#16d38a;
+      color:#083b27;
     }
     #no{
-      background: rgba(255,255,255,.92);
+      background:#fff;
       color:#d1004b;
-      position: absolute;
-      left: 58%;
-      top: 52%;
-      transform: translate(-50%, -50%);
-      touch-action: none;
+      position:absolute;
+      left:60%;
+      top:50%;
+      transform:translate(-50%,-50%);
     }
     .msg{
-      margin-top: 14px;
-      font-size: 22px;
-      font-weight: 800;
       display:none;
+      margin-top:18px;
+      font-size:22px;
+      font-weight:800;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>💌 Kenza…</h1>
-    <p>Accepterais-tu d’être ma Valentine ?</p>
 
-    <div class="stage" id="stage">
-      <button id="yes">Oui 💘</button>
-      <button id="no">Non 🙈</button>
-    </div>
+<div class="card">
+  <h1>💌 Kenza…</h1>
+  <p>Accepterais-tu d’être ma Valentine ?</p>
 
-    <div class="msg" id="msg">i love youuu kenza</div>
+  <div class="stage" id="stage">
+    <button id="yes">Oui 💘</button>
+    <button id="no">Non 🙈</button>
   </div>
 
-  <script>
-    const stage = document.getElementById("stage");
-    const noBtn = document.getElementById("no");
-    const yesBtn = document.getElementById("yes");
-    const msg = document.getElementById("msg");
+  <div class="msg" id="msg">waah sguigui3a i love youu 💖</div>
+</div>
 
-    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+<script>
+  const yesBtn = document.getElementById("yes");
+  const noBtn  = document.getElementById("no");
+  const stage  = document.getElementById("stage");
+  const msg    = document.getElementById("msg");
 
-    function moveNoButton(){
-      const r = stage.getBoundingClientRect();
-      const br = noBtn.getBoundingClientRect();
-      const padding = 8;
+  let yesClicks = 0;
+  let scale = 1;
 
-      const maxX = r.width - br.width - padding;
-      const maxY = r.height - br.height - padding;
+  function moveNo(){
+    const r = stage.getBoundingClientRect();
+    const b = noBtn.getBoundingClientRect();
+    const x = Math.random() * (r.width - b.width);
+    const y = Math.random() * (r.height - b.height);
+    noBtn.style.left = x + "px";
+    noBtn.style.top  = y + "px";
+    noBtn.style.transform = "translate(0,0)";
+  }
 
-      const x = clamp(padding + Math.random()*maxX, padding, maxX);
-      const y = clamp(padding + Math.random()*maxY, padding, maxY);
+  ["mouseenter","pointerenter","touchstart"].forEach(e=>{
+    noBtn.addEventListener(e, moveNo, {passive:true});
+  });
 
-      noBtn.style.left = x + "px";
-      noBtn.style.top  = y + "px";
-      noBtn.style.transform = "translate(0,0)";
-    }
+  yesBtn.addEventListener("click", ()=>{
+    yesClicks++;
+    scale += 0.35;
+    yesBtn.style.transform = `scale(${scale})`;
 
-    // Fuit la souris / touch
-    ["mouseenter","pointerenter","pointerdown","touchstart"].forEach(evt=>{
-      noBtn.addEventListener(evt, moveNoButton, {passive:true});
-    });
-
-    // Si on s'approche
-    stage.addEventListener("mousemove", (e)=>{
-      const r = stage.getBoundingClientRect();
-      const x = e.clientX - r.left;
-      const y = e.clientY - r.top;
-      const b = noBtn.getBoundingClientRect();
-      const bx = (b.left - r.left) + b.width/2;
-      const by = (b.top - r.top) + b.height/2;
-      if (Math.hypot(bx - x, by - y) < 120) moveNoButton();
-    });
-
-    yesBtn.addEventListener("click", ()=>{
+    if(yesClicks >= 3){
       msg.style.display = "block";
       yesBtn.disabled = true;
       noBtn.disabled = true;
-    });
+    }
+  });
 
-    // placement initial
-    setTimeout(moveNoButton, 50);
-  </script>
+  setTimeout(moveNo, 100);
+</script>
+
 </body>
 </html>
